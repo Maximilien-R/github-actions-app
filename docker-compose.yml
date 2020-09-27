@@ -1,0 +1,125 @@
+version: "3.4"
+
+x-development-build: &development-build
+  build:
+    context: .
+    dockerfile: Dockerfile
+    args:
+      requirement_file: development.txt
+
+x-testing-build: &testing-build
+  build:
+    context: .
+    dockerfile: Dockerfile
+    args:
+      requirement_file: testing.txt
+
+x-networks: &networks
+  networks:
+    - ns
+
+x-mounted: &mounted
+  volumes:
+    - .:/usr/src/app
+
+services:
+  database:
+    <<: *networks
+    image: mysql:5.7
+    ports:
+      - 3306
+    environment:
+      - MYSQL_HOST=database
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=github_actions_app
+    volumes:
+      - ./.docker/fixtures.sql:/docker-entrypoint-initdb.d/fixtures.sql
+  
+  app:
+    <<: *development-build
+    <<: *networks
+    environment:
+      - GITHUB_ACTIONS_APP_ENV=development
+      - DATABASE_IS_OPTIONAL=0
+    depends_on:
+      - database
+    ports:
+      - 8090:8090
+
+  format-imports:
+    <<: *mounted
+    <<: *development-build
+    command: isort github_actions_app/. tests/.
+    environment:
+      - GITHUB_ACTIONS_APP_ENV=development
+      - DATABASE_IS_OPTIONAL=1
+
+  format:
+    <<: *mounted
+    <<: *development-build
+    command: black -l 79 --target-version py38 github_actions_app tests
+    environment:
+      - GITHUB_ACTIONS_APP_ENV=development
+      - DATABASE_IS_OPTIONAL=1
+
+  check-imports:
+    <<: *development-build
+    command: isort --check-only github_actions_app/. tests/.
+    environment:
+      - GITHUB_ACTIONS_APP_ENV=development
+      - DATABASE_IS_OPTIONAL=1
+
+  check-format:
+    <<: *development-build
+    command: black -l 79 --target-version py38 --check github_actions_app tests
+    environment:
+      - GITHUB_ACTIONS_APP_ENV=development
+      - DATABASE_IS_OPTIONAL=1
+
+  style:
+    <<: *development-build
+    command: pylint --reports=n --rcfile=pylintrc github_actions_app tests
+    environment:
+      - GITHUB_ACTIONS_APP_ENV=development
+      - DATABASE_IS_OPTIONAL=1
+
+  complexity:
+    <<: *development-build
+    command: xenon --max-absolute B --max-modules B --max-average A github_actions_app
+    environment:
+      - GITHUB_ACTIONS_APP_ENV=development
+      - DATABASE_IS_OPTIONAL=1
+
+  security-sast:
+    <<: *development-build
+    command: bandit -r github_actions_app
+    environment:
+      - GITHUB_ACTIONS_APP_ENV=development
+      - DATABASE_IS_OPTIONAL=1
+
+  test-unit:
+    <<: *testing-build
+    command: py.test -s tests/unit -vvvvvv --junitxml=reports/report_unit_tests.xml --cov . --cov-config .coveragerc --cov-report term-missing --cov-report xml:reports/coverage_unit.xml
+    environment:
+      - GITHUB_ACTIONS_APP_ENV=testing
+      - DATABASE_IS_OPTIONAL=1
+    volumes:
+      - ./reports:/usr/src/app/reports
+
+  test-functional:
+    <<: *networks
+    <<: *testing-build
+    command: py.test -s tests/functional -vvvvvv --junitxml=reports/report_func_tests.xml --cov . --cov-config .coveragerc --cov-report term-missing --cov-report xml:reports/coverage_functional.xml
+    environment:
+      - GITHUB_ACTIONS_APP_ENV=testing
+      - DATABASE_IS_OPTIONAL=0
+    depends_on:
+      - database
+    volumes:
+      - ./reports:/usr/src/app/reports
+
+networks:
+  ns:
+    driver: bridge

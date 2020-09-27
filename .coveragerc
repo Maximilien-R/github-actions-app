@@ -1,0 +1,8 @@
+[run]
+data_file = reports/.coverage
+omit =
+    tests/*
+    github_actions_app/__main__.py
+
+[report]
+    show_missing = true
