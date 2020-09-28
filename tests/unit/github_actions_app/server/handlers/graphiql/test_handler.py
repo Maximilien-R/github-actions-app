@@ -10,7 +10,9 @@ from github_actions_app.server.handlers.graphiql.handler import (
 
 def test_get_graphiql_template():
     open_mock = mock_open()
-    with patch("github_actions_app.server.handlers.graphiql.handler.open", open_mock):
+    with patch(
+        "github_actions_app.server.handlers.graphiql.handler.open", open_mock
+    ):
         _get_graphiql_template()
         open_mock.assert_called_once_with(
             "/usr/src/app/github_actions_app/server/handlers/graphiql/templates/graphiql.html"  # pylint: disable=line-too-long

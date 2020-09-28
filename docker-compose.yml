@@ -36,7 +36,7 @@ services:
       - MYSQL_DATABASE=github_actions_app
     volumes:
       - ./.docker/fixtures.sql:/docker-entrypoint-initdb.d/fixtures.sql
-  
+
   app:
     <<: *development-build
     <<: *networks
@@ -80,7 +80,7 @@ services:
 
   style:
     <<: *development-build
-    command: pylint --reports=n --rcfile=pylintrc github_actions_app tests
+    command: pylint --reports=n --rcfile=pylintrc github_actions_app
     environment:
       - GITHUB_ACTIONS_APP_ENV=development
       - DATABASE_IS_OPTIONAL=1
