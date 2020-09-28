@@ -4,7 +4,10 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from github_actions_app.server.handlers.graphql.handler import _prepare_response, handle_graphql
+from github_actions_app.server.handlers.graphql.handler import (
+    _prepare_response,
+    handle_graphql,
+)
 
 
 @pytest.mark.parametrize(

@@ -3,9 +3,13 @@ from typing import Any, Dict, Optional
 from aiohttp import web
 from aiohttp.http_exceptions import HttpBadRequest, HttpProcessingError
 
-from github_actions_app.server.handlers.graphql.context_factory import context_factory
+from github_actions_app.server.handlers.graphql.context_factory import (
+    context_factory,
+)
 from github_actions_app.server.handlers.graphql.errors import format_error
-from github_actions_app.server.handlers.graphql.request_parsers import extract_graphql_params
+from github_actions_app.server.handlers.graphql.request_parsers import (
+    extract_graphql_params,
+)
 
 __all__ = ("handle_graphql",)
 

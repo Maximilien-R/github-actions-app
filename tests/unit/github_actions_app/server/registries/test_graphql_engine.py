@@ -2,7 +2,10 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from github_actions_app.server.registries import graphql_engine, register_graphql_engine
+from github_actions_app.server.registries import (
+    graphql_engine,
+    register_graphql_engine,
+)
 
 
 @pytest.mark.asyncio
